@@ -18,7 +18,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-fully
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => Promise.reject(error)
