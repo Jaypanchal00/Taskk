@@ -7,7 +7,6 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -19,9 +18,15 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+fully
+api.interceptors.response.use(
+  (response) => response,
+  (error) => Promise.reject(error)
+);
+
 // Auth services
-export const loginUser = async (username, password) => {
-  const { data } = await api.post("/auth/login", { username, password });
+export const loginUser = async (username, password, expiresInMins = 1440) => {
+  const { data } = await api.post("/auth/login", { username, password, expiresInMins });
   return data;
 };
 

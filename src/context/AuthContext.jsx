@@ -4,32 +4,37 @@ import { getMe, loginUser } from "../services/api";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [loading, setLoading] = useState(() => {
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+    return !!token && !user; 
+  });
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const userData = await getMe();
-          setUser(userData);
-        } catch (err) {
-          console.error("Session expired or invalid", err);
-          logout();
-        }
-      }
-      setLoading(false);
-    };
-
-    fetchUser();
+    setLoading(false);
+    const token = localStorage.getItem("token");
+    if (token) {
+      getMe().then(userData => {
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+      }).catch(() => {
+       
+      });
+    }
   }, []);
 
   const login = async (username, password) => {
     try {
-      const { token, ...userData } = await loginUser(username, password);
+      const data = await loginUser(username, password);
+      const { token, ...userData } = data;
+      
       localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       setError(null);
       return true;
@@ -41,6 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
   };
 
